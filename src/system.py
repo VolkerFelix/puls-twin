@@ -6,13 +6,16 @@ import logging
 from typing import List, Optional
 
 from pulse.engine.PulseEngine import PulseEngine
+from pulse.cdm.engine import SEDataRequest, SEDataRequestManager
+from pulse.cdm.scalars import FrequencyUnit, LengthUnit, MassUnit, MassPerVolumeUnit, \
+                              PressureUnit, TemperatureUnit, TimeUnit, VolumeUnit, VolumePerTimeUnit
 
 from output.console import ConsoleOutputChannel
 from output.json_api import JsonAPIOutputChannel
 from wearable.processor import WearableDataProcessor
 from pulse.simulation import PulseSimulationController
 from avatar.state_manager import AvatarStateManager
-
+from pulse.patient import PatientConfiguration, eStartType
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -28,12 +31,11 @@ class WearableTwinSystem:
     
     def __init__(self, output_channels=None, config_file=None):
         """Initialize the wearable twin system"""
-        self.pulse_engine = None
-        self.output_channels = output_channels
-        self.config = None
-
-        self._load_config(config_file)
-        self._load_pulse_engine()
+        self.pulse_engine = PulseEngine()
+        logger.info("Pulse Engine successfully created")
+        self._set_data_mgr()
+        self.patient_config = PatientConfiguration(self.pulse_engine, self.data_req_mgr, eStartType.Stabilize_PatientObject)
+        self._init_engine()
 
         self.wearable_processor = WearableDataProcessor(
             engine=self.pulse_engine,
@@ -59,6 +61,19 @@ class WearableTwinSystem:
             
         logger.info("Wearable Twin System initialized successfully")
         return True
+    
+    def _set_data_mgr(self):
+        self.data_req_mgr = SEDataRequestManager([])
+        data_requests = [
+            SEDataRequest.create_physiology_request("HeartRate", unit=FrequencyUnit.Per_min),
+            SEDataRequest.create_physiology_request("RespirationRate", unit=FrequencyUnit.Per_min),
+            SEDataRequest.create_physiology_request("EndTidalCarbonDioxidePressure",  unit=PressureUnit.mmHg),
+            SEDataRequest.create_gas_compartment_substance_request("Carina", "CarbonDioxide", "PartialPressure",  unit=PressureUnit.mmHg),
+            SEDataRequest.create_substance_request("Oxygen", "AlveolarTransfer", VolumePerTimeUnit.mL_Per_s),
+            SEDataRequest.create_substance_request("CarbonDioxide", "AlveolarTransfer", VolumePerTimeUnit.mL_Per_s),
+        ]
+        self.data_req_mgr = SEDataRequestManager(data_requests)
+        self.data_req_mgr.set_results_filename("./test_results/UseCase1.csv")
 
     def _load_config(self, config_file):
         if config_file and os.path.exists(config_file):
@@ -68,11 +83,9 @@ class WearableTwinSystem:
             except Exception as e:
                 logger.error(f"Error loading configuration: {e}")
 
-    def _load_pulse_engine(self):
+    def _init_engine(self):
         try:
-            self.pulse_engine = PulseEngine()
-            logger.info("Pulse Engine successfully created")
-            self.pulse_engine.initialize_engine()
+            self.pulse_engine.initialize_engine(self.patient_config, self.data_req_mgr)
             logger.info("Initialized Pulse Engine")
         except Exception as e:
             logger.error(f"Failed to initialize Pulse Engine: {e}")
