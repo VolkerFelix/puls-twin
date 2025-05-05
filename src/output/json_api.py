@@ -1,4 +1,5 @@
-from base import OutputChannel
+from threading import Lock
+from .base import OutputChannel
 
 class JsonAPIOutputChannel(OutputChannel):
     """

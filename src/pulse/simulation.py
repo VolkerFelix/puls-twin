@@ -5,16 +5,14 @@ import json
 import numpy as np
 from threading import Thread, Lock
 
-# Assuming pulse_engine is the imported Pulse Physiology Engine package
-try:
-    # Platform-specific imports based on installation method
-    from pulse_engine import PhysiologyEngine, SEScalarTypes as Types
-    from pulse_engine import SECardiovascularSystem, SERespiratorySystem
-    from pulse_engine import SEBloodChemistrySystem, SESubstanceManager
-except ImportError:
-    print("Error: Pulse Physiology Engine package not found")
-    print("Please install the Pulse Engine SDK from: https://pulse.kitware.com/")
-    sys.exit(1)
+# try:
+#     from pulse.cdm.engine import PhysiologyEngine, SEScalarTypes as Types
+#     from pulse.cdm.engine import SECardiovascularSystem, SERespiratorySystem
+#     from pulse.cdm.engine import SEBloodChemistrySystem, SESubstanceManager
+# except ImportError:
+#     print("Simulation Error: Pulse Physiology Engine package not found")
+#     print("Please install the Pulse Engine SDK from: https://pulse.kitware.com/")
+#     sys.exit(1)
 
 class PulseSimulationController:
     """

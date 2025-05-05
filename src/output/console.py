@@ -1,4 +1,4 @@
-from base import OutputChannel
+from .base import OutputChannel
 
 class ConsoleOutputChannel(OutputChannel):
     """Outputs avatar state to console for debugging/demo"""

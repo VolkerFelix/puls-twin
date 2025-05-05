@@ -1,59 +1,43 @@
+import sys
+import os
+import json
+import time
+import logging
+from typing import List, Optional
+
+from pulse.engine.PulseEngine import PulseEngine
+
+from output.console import ConsoleOutputChannel
+from output.json_api import JsonAPIOutputChannel
+from wearable.processor import WearableDataProcessor
+from pulse.simulation import PulseSimulationController
+from avatar.state_manager import AvatarStateManager
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("WearableTwinSystem")
+
 class WearableTwinSystem:
     """
     Main system class that integrates wearable data with Pulse Engine
     and manages the digital twin avatar state
     """
     
-    def __init__(self):
+    def __init__(self, output_channels=None, config_file=None):
         """Initialize the wearable twin system"""
         self.pulse_engine = None
-        self.wearable_processor = None
-        self.simulation = None
-        self.avatar_manager = None
-        self.running = False
-        
-        # Output channels
-        self.output_channels = []
-        
-    def initialize(self, pulse_engine=None, wearable_source=None, 
-                  output_channels=None, config_file=None):
-        """
-        Initialize the system with the provided components
-        
-        Args:
-            pulse_engine: Initialized Pulse PhysiologyEngine instance
-            wearable_source: Source of wearable data
-            output_channels: List of output channels for avatar state
-            config_file: Path to configuration file (optional)
-        """
-        logger.info("Initializing Wearable Twin System")
-        
-        # Load configuration if provided
-        config = {}
-        if config_file and os.path.exists(config_file):
-            try:
-                with open(config_file, 'r') as f:
-                    config = json.load(f)
-            except Exception as e:
-                logger.error(f"Error loading configuration: {e}")
-        
-        # Initialize or use provided Pulse Engine
-        self.pulse_engine = pulse_engine
-        if not self.pulse_engine:
-            try:
-                # Import and initialize Pulse Engine
-                from pulse_engine import PhysiologyEngine
-                self.pulse_engine = PhysiologyEngine()
-                self.pulse_engine.initialize_engine()
-                logger.info("Initialized Pulse Engine")
-            except Exception as e:
-                logger.error(f"Failed to initialize Pulse Engine: {e}")
-                raise RuntimeError("Pulse Engine initialization failed")
-        
-        # Initialize components
+        self.output_channels = output_channels
+        self.config = None
+
+        self._load_config(config_file)
+        self._load_pulse_engine()
+
         self.wearable_processor = WearableDataProcessor(
             engine=self.pulse_engine,
-            data_source=wearable_source
+            #data_source=wearable_source
         )
         
         self.simulation = PulseSimulationController(
@@ -75,8 +59,26 @@ class WearableTwinSystem:
             
         logger.info("Wearable Twin System initialized successfully")
         return True
+
+    def _load_config(self, config_file):
+        if config_file and os.path.exists(config_file):
+            try:
+                with open(config_file, 'r') as f:
+                    self.config = json.load(f)
+            except Exception as e:
+                logger.error(f"Error loading configuration: {e}")
+
+    def _load_pulse_engine(self):
+        try:
+            self.pulse_engine = PulseEngine()
+            self.pulse_engine.initialize_engine()
+            logger.info("Initialized Pulse Engine")
+        except Exception as e:
+            logger.error(f"Failed to initialize Pulse Engine: {e}")
+            raise RuntimeError("Pulse Engine initialization failed")
+
         
-    def register_output_channel(self, channel):
+    def _register_output_channel(self, channel):
         """Register an output channel"""
         if isinstance(channel, OutputChannel):
             self.output_channels.append(channel)
@@ -86,7 +88,7 @@ class WearableTwinSystem:
         logger.warning(f"Invalid output channel: {channel}")
         return False
         
-    def start(self, wearable_interval=1.0, simulation_step=0.02, 
+    def _start(self, wearable_interval=1.0, simulation_step=0.02, 
              display_interval=0.5):
         """
         Start the wearable twin system
@@ -123,7 +125,7 @@ class WearableTwinSystem:
             self.stop()  # Ensure cleanup if partial start
             return False
     
-    def stop(self):
+    def _stop(self):
         """Stop the wearable twin system"""
         logger.info("Stopping Wearable Twin System")
         
@@ -155,16 +157,12 @@ class WearableTwinSystem:
 
 # Example usage
 if __name__ == "__main__":
-    # Create system
-    twin_system = WearableTwinSystem()
-    
-    # Initialize with output channels
+    # Create output channels
     console_output = ConsoleOutputChannel()
     json_output = JsonAPIOutputChannel(output_path="avatar_state.json")
-    
-    twin_system.initialize(
-        output_channels=[console_output, json_output]
-    )
+
+    # Create system
+    twin_system = WearableTwinSystem()
     
     # Start the system
     twin_system.start()

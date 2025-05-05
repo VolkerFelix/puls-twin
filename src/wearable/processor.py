@@ -5,17 +5,14 @@ import json
 import numpy as np
 from threading import Thread
 
-# Assuming pulse_engine is the imported Pulse Physiology Engine package
-# This would be the appropriate import for your specific implementation
-try:
-    # Platform-specific imports based on installation method
-    from pulse_engine import PhysiologyEngine, SEScalarTypes as Types
-    from pulse_engine import SEHeartRateData, SERespirationRateData
-    from pulse_engine import SEPatientActionCollection as Actions
-except ImportError:
-    print("Error: Pulse Physiology Engine package not found")
-    print("Please install the Pulse Engine SDK from: https://pulse.kitware.com/")
-    sys.exit(1)
+# try:
+#     from pulse.cdm.engine import PhysiologyEngine, SEScalarTypes as Types
+#     from pulse.cdm.engine import SEHeartRateData, SERespirationRateData
+#     from pulse.cdm.engine import SEPatientActionCollection as Actions
+# except ImportError:
+#     print("Processor Error: Pulse Physiology Engine package not found")
+#     print("Please install the Pulse Engine SDK from: https://pulse.kitware.com/")
+#     sys.exit(1)
 
 class WearableDataProcessor:
     """
