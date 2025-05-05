@@ -71,6 +71,7 @@ class WearableTwinSystem:
     def _load_pulse_engine(self):
         try:
             self.pulse_engine = PulseEngine()
+            logger.info("Pulse Engine successfully created")
             self.pulse_engine.initialize_engine()
             logger.info("Initialized Pulse Engine")
         except Exception as e:
@@ -154,31 +155,3 @@ class WearableTwinSystem:
             return self.simulation.get_latest_values()
         return None
         
-
-# Example usage
-if __name__ == "__main__":
-    # Create output channels
-    console_output = ConsoleOutputChannel()
-    json_output = JsonAPIOutputChannel(output_path="avatar_state.json")
-
-    # Create system
-    twin_system = WearableTwinSystem()
-    
-    # Start the system
-    twin_system.start()
-    
-    # Run for demonstration
-    try:
-        print("\nWearable Twin System is running.")
-        print("Press Ctrl+C to stop...")
-        
-        # Keep running until interrupted
-        while True:
-            time.sleep(1)
-            
-    except KeyboardInterrupt:
-        print("\nStopping...")
-    finally:
-        # Clean up
-        twin_system.stop()
-        print("System stopped.")
