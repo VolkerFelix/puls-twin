@@ -5,7 +5,7 @@ from threading import Thread
 
 from pulse.engine.PulseEngine import PulseEngine
 from pulse.cdm.engine import SEDataRequest, SEDataRequestManager
-from pulse.cdm.scalars import FrequencyUnit, PressureUnit
+from pulse.cdm.scalars import FrequencyUnit, PressureUnit, VolumePerTimeUnit
 from pulse.cdm.patient import SEPatient
 
 from output.console import ConsoleOutputChannel
@@ -72,7 +72,8 @@ class WearableTwinSystem:
             SEDataRequest.create_physiology_request("RespirationRate", unit=FrequencyUnit.Per_min),
             SEDataRequest.create_physiology_request("OxygenSaturation"),
             SEDataRequest.create_physiology_request("SystolicArterialPressure", unit=PressureUnit.mmHg),
-            SEDataRequest.create_physiology_request("DiastolicArterialPressure", unit=PressureUnit.mmHg)
+            SEDataRequest.create_physiology_request("DiastolicArterialPressure", unit=PressureUnit.mmHg),
+            SEDataRequest.create_physiology_request("CardiacOutput", unit=VolumePerTimeUnit.L_Per_min),
         ]
         self.data_req_mgr = SEDataRequestManager(data_requests)
         self.data_req_mgr.set_results_filename("./test_results/WearableTwin.csv")
@@ -116,30 +117,6 @@ class WearableTwinSystem:
         if isinstance(channel, OutputChannel):
             self.output_channels.append(channel)
             logger.info(f"Registered output channel: {channel.__class__.__name__}")
-
-            try:
-                # Test the channel by sending a simple state record
-                test_record = {
-                    'timestamp': time.time(),
-                    'primary_state': 'neutral',
-                    'state_description': 'Channel test state',
-                    'all_states': {'is_dizzy': False, 'is_chill': False, 'is_beast_mode': False},
-                    'physiological_values': {
-                        'heart_rate': 72.0,
-                        'mean_pressure': 95.0,
-                        'respiratory_rate': 12.0,
-                        'oxygen_saturation': 0.97,
-                        'systolic_pressure': 120.0,
-                        'diastolic_pressure': 80.0
-                    }
-                }
-                channel.update_avatar_state(test_record)
-                logger.info(f"Successfully tested channel: {channel.__class__.__name__}")
-            except Exception as e:
-                logger.error(f"Error testing channel {channel.__class__.__name__}: {e}")
-                import traceback
-                logger.error(traceback.format_exc())
-
             return True
         logger.warning(f"Invalid output channel: {type(channel).__name__}")
         return False
@@ -194,7 +171,8 @@ class WearableTwinSystem:
                         'respiratory_rate': float(results[3]),
                         'oxygen_saturation': float(results[4]),
                         'systolic_pressure': float(results[5]),
-                        'diastolic_pressure': float(results[6])
+                        'diastolic_pressure': float(results[6]),
+                        'cardiac_output': float(results[7])
                     }
                 }
                 
