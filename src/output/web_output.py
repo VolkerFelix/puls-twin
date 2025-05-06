@@ -54,7 +54,8 @@ class WebVisualizationOutputChannel(OutputChannel):
                 "diastolic_pressure": [],
                 "mean_pressure": [],
                 "oxygen_saturation": [],
-                "respiratory_rate": []
+                "respiratory_rate": [],
+                "cardiac_output": []
             },
             "current_state": {
                 "primary_state": "neutral",
@@ -209,6 +210,32 @@ class WebVisualizationOutputChannel(OutputChannel):
                         self.data['values']['respiratory_rate'] = self.data['values']['respiratory_rate'][-100:]
                 except (ValueError, TypeError) as e:
                     logger.error(f"Error processing respiratory_rate value: {e}")
+
+            if 'oxygen_saturation' in values:
+                try:
+                    self.data['values']['oxygen_saturation'].append({
+                        'x': float(timestamp),
+                        'y': float(values['oxygen_saturation']) * 100  # Convert from decimal to percentage
+                    })
+                    if len(self.data['values']['oxygen_saturation']) > 100:
+                        self.data['values']['oxygen_saturation'] = self.data['values']['oxygen_saturation'][-100:]
+                except (ValueError, TypeError) as e:
+                    logger.error(f"Error processing oxygen_saturation value: {e}")
+
+            if 'cardiac_output' in values:
+                try:
+                    # Create the list if it doesn't exist
+                    if 'cardiac_output' not in self.data['values']:
+                        self.data['values']['cardiac_output'] = []
+                        
+                    self.data['values']['cardiac_output'].append({
+                        'x': float(timestamp),
+                        'y': float(values['cardiac_output'])
+                    })
+                    if len(self.data['values']['cardiac_output']) > 100:
+                        self.data['values']['cardiac_output'] = self.data['values']['cardiac_output'][-100:]
+                except (ValueError, TypeError) as e:
+                    logger.error(f"Error processing cardiac_output value: {e}")
             
             # Update current state
             primary_state = state_record.get('primary_state', 'neutral')

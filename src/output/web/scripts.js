@@ -111,7 +111,7 @@ function setupCharts() {
                         data: []
                     }]
                 },
-                options: getChartOptions('Oxygen Saturation (%)', 'Time', '%', 90, 100)
+                options: getChartOptions('Oxygen Saturation (%)', 'Time', '%', 0, 100)
             }
         );
         
