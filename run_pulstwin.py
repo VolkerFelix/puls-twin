@@ -7,6 +7,7 @@ an existing state file from the Pulse installation.
 import sys
 import time
 import logging
+import click
 import warnings
 warnings.filterwarnings("ignore", module="google.protobuf.runtime_version")
 
@@ -32,26 +33,31 @@ except ImportError as e:
     logger.error("Make sure you've installed the package with: pip install -e .")
     sys.exit(1)
 
-def main():
+@click.command()
+@click.option('--web', is_flag=True, help='Enable web visualization')
+@click.option('--console', is_flag=True, help='Enable console output')
+def main(web, console):
     """Run the wearable twin system"""
     logger.info("Starting Wearable Twin System...")
     
     web_output = None
-    try:
-        web_output = WebVisualizationOutputChannel(host="localhost", port=8000)
-    except Exception as e:
-        logger.error(f"Failed to create or test web output channel: {e}")
+    console_output = None
+    output_channels = []
+
+    if web:
+        try:
+            web_output = WebVisualizationOutputChannel(host="localhost", port=8000)
+            output_channels.append(web_output)
+        except Exception as e:
+            logger.error(f"Failed to create or test web output channel: {e}")
         import traceback
         logger.error(traceback.format_exc())
         web_output = None
     
-    # Create console output
-    console_output = ConsoleOutputChannel()
-    
-    # Create and initialize the system with available output channels
-    output_channels = [console_output]
-    if web_output:
-        output_channels.append(web_output)
+    if console:
+        # Create console output
+        console_output = ConsoleOutputChannel()
+        output_channels.append(console_output)
     
     try:
         logger.info("Initializing system...")

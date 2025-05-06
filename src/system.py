@@ -1,3 +1,4 @@
+import math
 import os
 import time
 import logging
@@ -146,14 +147,25 @@ class WearableTwinSystem:
         """Main simulation loop that advances time and updates outputs"""
         update_interval = 0.5  # How often to update in seconds
         time_step = 0.02       # Simulation time step in seconds
+
+        # Track simulation time for HRV calculation
+        sim_time = 0.0
+        # Storage for HRV calculation
+        prev_hr = None
+        hrv_window = []
         
         while self.running:
             try:
                 # Advance time
                 self.pulse_engine.advance_time_s(time_step)
+                sim_time += time_step
                 
                 # Get physiological values periodically
                 results = self.pulse_engine.pull_data()
+
+                # Extract heart rate for HRV calculation
+                heart_rate = float(results[1])
+                hrv = self._calculate_hrv(heart_rate, prev_hr, hrv_window, sim_time)
                 
                 # Update output channels with the data
                 state_record = {
@@ -172,7 +184,8 @@ class WearableTwinSystem:
                         'oxygen_saturation': float(results[4]),
                         'systolic_pressure': float(results[5]),
                         'diastolic_pressure': float(results[6]),
-                        'cardiac_output': float(results[7])
+                        'cardiac_output': float(results[7]),
+                        'hrv': hrv
                     }
                 }
                 
@@ -217,3 +230,41 @@ class WearableTwinSystem:
             self.pulse_engine.clear()
         
         logger.info("System stopped")
+
+    def _calculate_hrv(self, heart_rate, prev_hr, hrv_window, sim_time):
+        """Calculate HRV based on heart rate"""
+        # Calculate HRV - use a simple RMSSD approach
+        # (Root Mean Square of Successive Differences)
+        if prev_hr is not None:
+            # Calculate beat-to-beat interval (in ms)
+            rr_interval = 60000.0 / heart_rate  # ms
+            prev_rr_interval = 60000.0 / prev_hr  # ms
+            
+            # Calculate difference
+            rr_diff = abs(rr_interval - prev_rr_interval)
+            
+            # Add to window
+            hrv_window.append(rr_diff)
+            # Keep window at reasonable size
+            if len(hrv_window) > 20:
+                hrv_window.pop(0)
+            
+        # Store current heart rate for next iteration
+        prev_hr = heart_rate
+        
+        # Calculate RMSSD (Root Mean Square of Successive Differences)
+        hrv_value = 0.0
+        if len(hrv_window) > 0:
+            # Calculate RMSSD from the window
+            squared_diffs = [diff * diff for diff in hrv_window]
+            mean_squared_diff = sum(squared_diffs) / len(squared_diffs)
+            hrv_value = math.sqrt(mean_squared_diff)
+            
+            # Add some physiological variation
+            hrv_value += 5.0 * math.sin(0.1 * sim_time)
+        else:
+            # Default HRV based on heart rate if we don't have enough data yet
+            hrv_value = 65.0 + 10.0 * (1.0 - min(1.0, heart_rate/80.0))
+
+        return hrv_value
+    
