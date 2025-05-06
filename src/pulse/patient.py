@@ -14,7 +14,7 @@ class eStartType(Enum):
 class PatientConfiguration:
     def __init__(self, pulse: PulseEngine, data_req_mgr: SEDataRequestManager, start_type: eStartType):
         self.start_type = start_type
-        self.pc = None
+        self.pc = SEPatientConfiguration()
         self._load_config(pulse, data_req_mgr, start_type)
 
     def _load_config(self, pulse: PulseEngine, data_req_mgr: SEDataRequestManager, start_type: eStartType):
@@ -24,7 +24,6 @@ class PatientConfiguration:
                 return
         elif start_type is eStartType.Stabilize_PatientFile or \
         start_type is eStartType.Stabilize_PatientObject:
-            self.pc = SEPatientConfiguration()
             if start_type is eStartType.Stabilize_PatientFile:
                 self.pc.set_patient_file("./data/patients/Soldier.json")
             elif start_type is eStartType.Stabilize_PatientObject:
@@ -40,4 +39,33 @@ class PatientConfiguration:
                 p.get_heart_rate_baseline().set_value(72, FrequencyUnit.Per_min)
                 p.get_systolic_arterial_pressure_baseline().set_value(117, PressureUnit.mmHg)
                 p.get_diastolic_arterial_pressure_baseline().set_value(72, PressureUnit.mmHg)
-                p.get_respiration_rate_baseline().set_value(12, FrequencyUnit.Per_min)  
+                p.get_respiration_rate_baseline().set_value(12, FrequencyUnit.Per_min)
+
+    def has_patient_file(self):
+        """Check if a patient file has been set"""
+        return self.pc is not None and self.pc.has_patient_file()
+
+    def has_patient(self):
+        """Check if a patient has been set"""
+        return self.pc is not None and self.pc.has_patient()
+
+    def has_conditions(self):
+        """Check if any conditions have been set"""
+        return self.pc is not None and self.pc.has_conditions()
+
+    def get_patient(self):
+        """Get the patient object"""
+        return self.pc.get_patient() if self.pc is not None else None
+
+    def get_patient_configuration(self):
+        """Get the underlying SEPatientConfiguration object"""
+        return self.pc
+
+    def get_data_root_dir(self):
+        """Get the data root directory path"""
+        return "./data"
+
+    def set_data_root_dir(self, path):
+        """Set the data root directory path"""
+        if self.pc is not None:
+            self.pc.set_data_root_dir(path)

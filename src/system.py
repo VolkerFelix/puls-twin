@@ -6,7 +6,7 @@ import logging
 from typing import List, Optional
 
 from pulse.engine.PulseEngine import PulseEngine
-from pulse.cdm.engine import SEDataRequest, SEDataRequestManager
+from pulse.cdm.engine import SEDataRequest, SEDataRequestManager, IEventHandler, ILoggerForward
 from pulse.cdm.scalars import FrequencyUnit, LengthUnit, MassUnit, MassPerVolumeUnit, \
                               PressureUnit, TemperatureUnit, TimeUnit, VolumeUnit, VolumePerTimeUnit
 
@@ -16,12 +16,29 @@ from wearable.processor import WearableDataProcessor
 from pulse.simulation import PulseSimulationController
 from avatar.state_manager import AvatarStateManager
 from pulse.patient import PatientConfiguration, eStartType
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("WearableTwinSystem")
+
+class LocalEventHandler(IEventHandler):
+    def handle_event(self, event, active, time_s):
+        logger.info(f"Event {event} {'activated' if active else 'deactivated'} at {time_s}s")
+
+class LocalLogForward(ILoggerForward):
+    def forward_debug(self, msg):
+        logger.debug(msg)
+    def forward_info(self, msg):
+        logger.info(msg)
+    def forward_warning(self, msg):
+        logger.warning(msg)
+    def forward_error(self, msg):
+        logger.error(msg)
+    def forward_fatal(self, msg):
+        logger.critical(msg)
 
 class WearableTwinSystem:
     """
@@ -33,8 +50,16 @@ class WearableTwinSystem:
         """Initialize the wearable twin system"""
         self.pulse_engine = PulseEngine()
         logger.info("Pulse Engine successfully created")
+
+        # Set up event handler and logger
+        self.pulse_engine.set_event_handler(LocalEventHandler())
+        self.pulse_engine.set_log_listener(LocalLogForward())
+        self.pulse_engine.log_to_console(True)
+        self.pulse_engine.set_log_filename("./logs/pulse_engine.log")
+
         self._set_data_mgr()
         self.patient_config = PatientConfiguration(self.pulse_engine, self.data_req_mgr, eStartType.Stabilize_PatientObject)
+        self.patient_config.set_data_root_dir("./data")  # Set the data root directory
         self._init_engine()
 
         self.wearable_processor = WearableDataProcessor(

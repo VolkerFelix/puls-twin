@@ -1,0 +1,74 @@
+{
+    "Lead1ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead2ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead3ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead4ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead5ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead6ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead7ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead8ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead9ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead10ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead11ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    },
+    "Lead12ElectricPotential": {
+        "ScalarElectricPotential": {
+            "Value": 0.0,
+            "Unit": "mV"
+        }
+    }
+} 

@@ -1,0 +1,24 @@
+{
+    "Name": "CarbonDioxide",
+    "State": "Gas",
+    "MolarMass": {
+        "Value": 44.01,
+        "Unit": "g/mol"
+    },
+    "Density": {
+        "Value": 1.98,
+        "Unit": "g/L"
+    },
+    "BloodConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    },
+    "PlasmaConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    },
+    "TissueConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    }
+} 

@@ -1,0 +1,9 @@
+{
+    "PatientState": {
+      "Name": "StandardMale",
+      "Age": { "Value": 30, "Unit": "yr" },
+      "Sex": "Male",
+      "Height": { "Value": 1.75, "Unit": "m" },
+      "Weight": { "Value": 75, "Unit": "kg" }
+    }
+  }

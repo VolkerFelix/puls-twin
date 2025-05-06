@@ -1,0 +1,48 @@
+{
+    "StabilizationCriteria": {
+        "Cardiovascular": {
+            "HeartRate": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            },
+            "MeanArterialPressure": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            },
+            "SystolicArterialPressure": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            },
+            "DiastolicArterialPressure": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            }
+        },
+        "Respiratory": {
+            "RespirationRate": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            },
+            "TidalVolume": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            },
+            "TotalLungVolume": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            }
+        },
+        "BloodChemistry": {
+            "OxygenSaturation": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            },
+            "CarbonDioxideSaturation": {
+                "PercentError": 0.1,
+                "MaximumError": 1.0
+            }
+        }
+    },
+    "StabilizationTime": 60.0,
+    "TimeStep": 0.02
+} 

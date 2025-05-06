@@ -1,0 +1,11 @@
+{
+    "Name": "Soldier",
+    "Sex": "Male",
+    "Age": { "ScalarTime": { "Value": 22, "Unit": "yr" } },
+    "Height": { "ScalarLength": { "Value": 1.8, "Unit": "m" } },
+    "Weight": { "ScalarMass": { "Value": 180, "Unit": "lb" } },
+    "HeartRateBaseline": { "ScalarFrequency": { "Value": 72, "Unit": "1/min" } },
+    "SystolicArterialPressureBaseline": { "ScalarPressure": { "Value": 117, "Unit": "mmHg" } },
+    "DiastolicArterialPressureBaseline": { "ScalarPressure": { "Value": 72, "Unit": "mmHg" } },
+    "RespirationRateBaseline": { "ScalarFrequency": { "Value": 12, "Unit": "1/min" } }
+}

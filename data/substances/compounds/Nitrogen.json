@@ -1,0 +1,24 @@
+{
+    "Name": "Nitrogen",
+    "State": "Gas",
+    "MolarMass": {
+        "Value": 28.0134,
+        "Unit": "g/mol"
+    },
+    "Density": {
+        "Value": 1.251,
+        "Unit": "g/L"
+    },
+    "BloodConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    },
+    "PlasmaConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    },
+    "TissueConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    }
+} 

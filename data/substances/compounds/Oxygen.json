@@ -1,0 +1,24 @@
+{
+    "Name": "Oxygen",
+    "State": "Gas",
+    "MolarMass": {
+        "Value": 32.0,
+        "Unit": "g/mol"
+    },
+    "Density": {
+        "Value": 1.429,
+        "Unit": "g/L"
+    },
+    "BloodConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    },
+    "PlasmaConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    },
+    "TissueConcentration": {
+        "Value": 0.0,
+        "Unit": "g/L"
+    }
+} 
