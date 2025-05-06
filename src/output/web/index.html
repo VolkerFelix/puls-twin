@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulsTwin Physiological Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Import Chart.js and required adapters -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0/dist/chartjs-adapter-luxon.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>PulsTwin Physiological Monitor</h1>
+        <div id="state-indicator">
+            <div id="state-bubble"></div>
+            <span id="state-text">Loading...</span>
+        </div>
+    </header>
+    
+    <main>
+        <div class="chart-container">
+            <canvas id="heartRateChart"></canvas>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-item">
+                <canvas id="bloodPressureChart"></canvas>
+            </div>
+            <div class="chart-item">
+                <canvas id="oxygenChart"></canvas>
+            </div>
+            <div class="chart-item">
+                <canvas id="respirationChart"></canvas>
+            </div>
+            <div class="chart-item">
+                <canvas id="cardiacOutputChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="metrics-panel">
+            <div class="metric" id="heart-rate">
+                <h3>Heart Rate</h3>
+                <div class="metric-value">-- bpm</div>
+            </div>
+            <div class="metric" id="blood-pressure">
+                <h3>Blood Pressure</h3>
+                <div class="metric-value">--/-- mmHg</div>
+            </div>
+            <div class="metric" id="oxygen-saturation">
+                <h3>Oxygen Saturation</h3>
+                <div class="metric-value">--%</div>
+            </div>
+            <div class="metric" id="respiratory-rate">
+                <h3>Respiratory Rate</h3>
+                <div class="metric-value">-- breaths/min</div>
+            </div>
+            <div class="metric" id="cardiac-output">
+                <h3>Cardiac Output</h3>
+                <div class="metric-value">-- L/min</div>
+            </div>
+            <div class="metric" id="hrv">
+                <h3>HRV</h3>
+                <div class="metric-value">-- ms</div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>PulsTwin Digital Twin System | <span id="update-time">Last update: Never</span></p>
+        <div id="debug-info" style="margin-top: 10px; font-size: 12px; color: #777;"></div>
+    </footer>
+    
+    <script src="scripts.js"></script>
+</body>
+</html>

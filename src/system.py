@@ -1,6 +1,4 @@
 import os
-import sys
-import json
 import time
 import logging
 from threading import Thread
@@ -13,6 +11,8 @@ from pulse.cdm.patient import SEPatient
 from output.console import ConsoleOutputChannel
 from output.base import OutputChannel
 
+STATE_FILE_PATH = "/Users/volker/Work/Puls/builds/install/bin/states/StandardMale@0s.json"
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +22,7 @@ logger = logging.getLogger("WearableTwinSystem")
 
 class WearableTwinSystem:
     """
-    Simplified system class using an existing state file
+    System class using an existing state file
     """
     
     def __init__(self, output_channels=None):
@@ -80,7 +80,7 @@ class WearableTwinSystem:
     def _init_engine(self):
         """Initialize the Pulse Engine with an existing state file"""
         # Path to an existing state file in the Pulse installation
-        state_file_path = "/Users/volker/Work/Puls/builds/install/bin/states/StandardMale@0s.json"
+        state_file_path = STATE_FILE_PATH
         
         try:
             # Check that the file exists
@@ -112,9 +112,34 @@ class WearableTwinSystem:
     
     def _register_output_channel(self, channel):
         """Register an output channel to receive avatar state updates"""
+        
         if isinstance(channel, OutputChannel):
             self.output_channels.append(channel)
             logger.info(f"Registered output channel: {channel.__class__.__name__}")
+
+            try:
+                # Test the channel by sending a simple state record
+                test_record = {
+                    'timestamp': time.time(),
+                    'primary_state': 'neutral',
+                    'state_description': 'Channel test state',
+                    'all_states': {'is_dizzy': False, 'is_chill': False, 'is_beast_mode': False},
+                    'physiological_values': {
+                        'heart_rate': 72.0,
+                        'mean_pressure': 95.0,
+                        'respiratory_rate': 12.0,
+                        'oxygen_saturation': 0.97,
+                        'systolic_pressure': 120.0,
+                        'diastolic_pressure': 80.0
+                    }
+                }
+                channel.update_avatar_state(test_record)
+                logger.info(f"Successfully tested channel: {channel.__class__.__name__}")
+            except Exception as e:
+                logger.error(f"Error testing channel {channel.__class__.__name__}: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+
             return True
         logger.warning(f"Invalid output channel: {type(channel).__name__}")
         return False
@@ -164,12 +189,12 @@ class WearableTwinSystem:
                         'is_beast_mode': results[1] > 90  # Heart rate above 90 = beast mode
                     },
                     'physiological_values': {
-                        'heart_rate': results[1],
-                        'mean_pressure': results[2],
-                        'respiratory_rate': results[3],
-                        'oxygen_saturation': results[4],
-                        'systolic_pressure': results[5],
-                        'diastolic_pressure': results[6]
+                        'heart_rate': float(results[1]),
+                        'mean_pressure': float(results[2]),
+                        'respiratory_rate': float(results[3]),
+                        'oxygen_saturation': float(results[4]),
+                        'systolic_pressure': float(results[5]),
+                        'diastolic_pressure': float(results[6])
                     }
                 }
                 
@@ -183,13 +208,15 @@ class WearableTwinSystem:
                 elif state_record['all_states']['is_chill']:
                     state_record['primary_state'] = 'is_chill'
                     state_record['state_description'] = 'Twin is chill'
-                
+
                 # Update all output channels
-                for channel in self.output_channels:
+                for i, channel in enumerate(self.output_channels):
                     try:
                         channel.update_avatar_state(state_record)
                     except Exception as e:
-                        logger.error(f"Error updating output channel: {e}")
+                        logger.error(f"Error updating output channel {i+1}: {e}")
+                        import traceback
+                        logger.error(traceback.format_exc())
                 
                 # Sleep to control simulation speed
                 time.sleep(update_interval)
