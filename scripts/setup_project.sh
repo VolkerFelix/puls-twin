@@ -18,8 +18,4 @@ export PYTHONPATH="/Users/volker/Work/Puls/builds/install/python:$PYTHONPATH"
 pip install -e .
 
 echo ""
-echo "Setup completed! You can now import modules from the pulstwin package."
-echo "Example: from src.system import WearableTwinSystem"
-echo ""
-echo "To run the system, use:"
-echo "PYTHONPATH=\"/Users/volker/Work/Puls/builds/install/python:$PYTHONPATH\" python -m src.system"
+echo "Setup completed!"

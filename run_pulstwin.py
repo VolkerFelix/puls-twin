@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Main runner script for the Pulse Twin system.
-This script runs from the project root, so imports work as expected.
+Runner script for the updated Wearable Twin system that uses
+an existing state file from the Pulse installation.
 """
 
 import os
@@ -14,9 +14,8 @@ if pulse_path not in sys.path:
 
 # Now import our system
 try:
-    from src.system import WearableTwinSystem
+    from src.mini_system import WearableTwinSystem
     from src.output.console import ConsoleOutputChannel
-    from src.output.json_api import JsonAPIOutputChannel
 except ImportError as e:
     print(f"Import error: {e}")
     print("Make sure you've installed the package with: pip install -e .")
@@ -28,13 +27,14 @@ def main():
     
     # Create output channels
     console_output = ConsoleOutputChannel()
-    json_output = JsonAPIOutputChannel(output_path="avatar_state.json")
     
-    # Create system
-    twin_system = WearableTwinSystem()
-    
-    # Initialize and start the system
+    # Create and initialize the system
     try:
+        print("Initializing system...")
+        twin_system = WearableTwinSystem([console_output])
+        
+        # Start the system
+        print("Starting system...")
         twin_system.start()
         
         print("\nWearable Twin System is running.")
