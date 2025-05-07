@@ -152,6 +152,28 @@ function setupCharts() {
                 options: getChartOptions('Cardiac Output', 'Time', 'L/min')
             }
         );
+        
+        // Recovery Progress Chart (if element exists)
+        if (document.getElementById('recoveryProgressChart')) {
+            charts.recoveryProgress = new Chart(
+                document.getElementById('recoveryProgressChart'),
+                {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Recovery Progress (%)',
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            data: []
+                        }]
+                    },
+                    options: getChartOptions('Recovery Progress', 'Time', '%', 0, 100)
+                }
+            );
+        }
+        
         console.log("Charts set up successfully");
         
         // Update debug info
@@ -261,6 +283,7 @@ async function fetchDataAndUpdate() {
         updateMetrics(data);
         updateState(data);
         updateLastUpdateTime(data);
+        updateRecoveryStatus(data); // New function for recovery status
         
         lastFetchSuccessful = true;
         console.log("UI updated successfully");
@@ -335,6 +358,16 @@ function updateCharts(data) {
         charts.cardiacOutput.data.datasets[0].data = coData;
         charts.cardiacOutput.update();
     }
+    
+    // Update Recovery Progress chart if it exists
+    if (charts.recoveryProgress && data.values.recovery_progress && data.values.recovery_progress.length > 0) {
+        const recoveryData = data.values.recovery_progress.slice(-MAX_POINTS).map(point => ({
+            x: new Date(point.x * 1000),
+            y: point.y * 100 // Convert to percentage
+        }));
+        charts.recoveryProgress.data.datasets[0].data = recoveryData;
+        charts.recoveryProgress.update();
+    }
 }
 
 function updateMetrics(data) {
@@ -383,7 +416,7 @@ function updateMetrics(data) {
 function updateState(data) {
     if (data.current_state) {
         const state = data.current_state.primary_state || 'neutral';
-        const description = data.current_state.description || 'Unknown state';
+        const description = data.current_state.state_description || 'Unknown state';
         
         // Update state indicator
         document.querySelector('#state-text').textContent = description;
@@ -401,3 +434,200 @@ function updateLastUpdateTime(data) {
         document.getElementById('update-time').textContent = `Last update: ${date.toLocaleTimeString()}`;
     }
 }
+
+// New function to update recovery status
+function updateRecoveryStatus(data) {
+    const recoveryPanel = document.getElementById('recovery-panel');
+    if (!recoveryPanel) return; // Exit if recovery panel doesn't exist
+    
+    if (!data.recovery_status || !data.recovery_status.active) {
+        recoveryPanel.style.display = 'none';
+        return;
+    }
+    
+    // Show recovery panel
+    recoveryPanel.style.display = 'block';
+    
+    // Update progress bar
+    const progressPercent = Math.round(data.recovery_status.recovery_progress * 100);
+    const progressBar = document.getElementById('recovery-progress-bar');
+    const progressText = document.getElementById('recovery-progress-text');
+    
+    if (progressBar && progressText) {
+        progressBar.style.width = `${progressPercent}%`;
+        progressText.textContent = `${progressPercent}%`;
+    }
+    
+    // Update severity indicator
+    const severity = data.recovery_status.severity;
+    const severityIndicator = document.getElementById('severity-indicator');
+    const severityText = document.getElementById('severity-text');
+    
+    if (severityIndicator && severityText) {
+        severityIndicator.className = 'severity-indicator ' + 
+            (severity < 0.3 ? 'severity-low' : 
+             severity < 0.7 ? 'severity-medium' : 'severity-high');
+        severityText.textContent = 
+            severity < 0.3 ? 'Mild' : 
+            severity < 0.7 ? 'Moderate' : 'Severe';
+    }
+    
+    // Update intervention bars
+    const interventions = data.recovery_status.interventions || {};
+    for (const [key, value] of Object.entries(interventions)) {
+        const bar = document.getElementById(`${key}-bar`);
+        if (bar) {
+            bar.style.width = `${Math.round(value * 100)}%`;
+        }
+        
+        // Update intervention level text if available
+        const levelText = document.getElementById(`${key}-level`);
+        if (levelText) {
+            levelText.textContent = `${Math.round(value * 100)}%`;
+        }
+    }
+    
+    // Update elapsed time
+    const elapsed = data.recovery_status.elapsed_time || 0;
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const timeElement = document.getElementById('recovery-time');
+    
+    if (timeElement) {
+        timeElement.textContent = `${hours}h ${minutes}m`;
+    }
+    
+    // Update estimated full recovery time
+    const estimatedElement = document.getElementById('estimated-recovery');
+    if (estimatedElement && progressPercent > 0) {
+        const totalEstimatedSeconds = elapsed / (progressPercent / 100);
+        const remainingSeconds = totalEstimatedSeconds - elapsed;
+        
+        const remainingHours = Math.floor(remainingSeconds / 3600);
+        const remainingMinutes = Math.floor((remainingSeconds % 3600) / 60);
+        
+        estimatedElement.textContent = `${remainingHours}h ${remainingMinutes}m remaining`;
+    }
+}
+
+// Function to toggle recovery interventions (for interactive controls)
+function toggleIntervention(interventionType, level) {
+    console.log(`Toggling intervention: ${interventionType} to level ${level}`);
+    
+    // Send an API request to update the intervention
+    fetch('/api/intervention', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            type: interventionType,
+            level: level
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update intervention');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Intervention updated successfully:', data);
+        // Optionally update UI immediately instead of waiting for next fetch
+        const bar = document.getElementById(`${interventionType}-bar`);
+        if (bar) {
+            bar.style.width = `${Math.round(level * 100)}%`;
+        }
+        
+        const levelText = document.getElementById(`${interventionType}-level`);
+        if (levelText) {
+            levelText.textContent = `${Math.round(level * 100)}%`;
+        }
+    })
+    .catch(error => {
+        console.error('Error updating intervention:', error);
+    });
+}
+
+// Add event listeners for intervention controls if they exist
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup sliders for interventions
+    const interventionSliders = document.querySelectorAll('.intervention-slider');
+    interventionSliders.forEach(slider => {
+        slider.addEventListener('input', function() {
+            const interventionType = this.getAttribute('data-intervention');
+            const level = parseFloat(this.value);
+            
+            // Update the level display
+            const levelDisplay = document.querySelector(`#${interventionType}-level`);
+            if (levelDisplay) {
+                levelDisplay.textContent = `${Math.round(level * 100)}%`;
+            }
+            
+            // Update the bar width
+            const bar = document.getElementById(`${interventionType}-bar`);
+            if (bar) {
+                bar.style.width = `${Math.round(level * 100)}%`;
+            }
+        });
+        
+        slider.addEventListener('change', function() {
+            const interventionType = this.getAttribute('data-intervention');
+            const level = parseFloat(this.value);
+            toggleIntervention(interventionType, level);
+        });
+    });
+    
+    // Setup start/stop controls for recovery simulation
+    const startRecoveryBtn = document.getElementById('start-recovery');
+    if (startRecoveryBtn) {
+        startRecoveryBtn.addEventListener('click', function() {
+            const severity = parseFloat(document.getElementById('severity-slider').value || 0.7);
+            
+            fetch('/api/recovery/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    severity: severity
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to start recovery simulation');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Recovery simulation started:', data);
+                document.getElementById('recovery-panel').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error starting recovery simulation:', error);
+            });
+        });
+    }
+    
+    const stopRecoveryBtn = document.getElementById('stop-recovery');
+    if (stopRecoveryBtn) {
+        stopRecoveryBtn.addEventListener('click', function() {
+            fetch('/api/recovery/stop', {
+                method: 'POST'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to stop recovery simulation');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Recovery simulation stopped:', data);
+                document.getElementById('recovery-panel').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error stopping recovery simulation:', error);
+            });
+        });
+    }
+});
