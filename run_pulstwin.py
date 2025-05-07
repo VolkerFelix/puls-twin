@@ -36,7 +36,10 @@ except ImportError as e:
 @click.command()
 @click.option('--web', is_flag=True, help='Enable web visualization')
 @click.option('--console', is_flag=True, help='Enable console output')
-def main(web, console):
+@click.option('--workout', is_flag=True, help='Start with a workout')
+@click.option('--intensity', type=float, default=0.5, help='Workout intensity (0.0-1.0)')
+@click.option('--duration', type=int, default=5, help='Workout duration in minutes')
+def main(web, console, workout, intensity, duration):
     """Run the wearable twin system"""
     logger.info("Starting Wearable Twin System...")
     
@@ -66,6 +69,17 @@ def main(web, console):
         # Start the system
         logger.info("Starting system...")
         twin_system.start()
+
+        if workout:
+            logger.info(f"Starting workout with intensity {intensity} for {duration} minutes")
+            if hasattr(twin_system, 'workout_controller'):
+                twin_system.workout_controller.start_workout(
+                    workout_type="constant",
+                    intensity=intensity,
+                    duration_minutes=duration
+                )
+            else:
+                twin_system.start_workout(intensity=intensity, duration_minutes=duration)
         
         logger.info("\nWearable Twin System is running.")
         if web_output:

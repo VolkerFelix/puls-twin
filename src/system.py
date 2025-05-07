@@ -11,6 +11,7 @@ from pulse.cdm.patient import SEPatient
 
 from output.console import ConsoleOutputChannel
 from output.base import OutputChannel
+from pulse.workout_controller import WorkoutController
 
 STATE_FILE_PATH = "/Users/volker/Work/Puls/builds/install/bin/states/StandardMale@0s.json"
 
@@ -58,6 +59,9 @@ class WearableTwinSystem:
             # Register default console output if no channels provided
             if not self.output_channels:
                 self._register_output_channel(ConsoleOutputChannel())
+
+            # Initialize workout controller
+            self.workout_controller = WorkoutController(self.pulse_engine)
                 
             logger.info("Wearable Twin System initialized successfully")
             
@@ -146,7 +150,7 @@ class WearableTwinSystem:
     def _simulation_loop(self):
         """Main simulation loop that advances time and updates outputs"""
         update_interval = 0.5  # How often to update in seconds
-        time_step = 0.02       # Simulation time step in seconds
+        time_step = 1.0       # Simulation time step in seconds
 
         # Track simulation time for HRV calculation
         sim_time = 0.0
@@ -156,7 +160,12 @@ class WearableTwinSystem:
         
         while self.running:
             try:
+                # Apply workout if active
+                if hasattr(self, 'workout_controller'):
+                    self.workout_controller.apply_to_engine()
+
                 # Advance time
+                #for _ in range(10):
                 self.pulse_engine.advance_time_s(time_step)
                 sim_time += time_step
                 
