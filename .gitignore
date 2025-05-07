@@ -177,3 +177,5 @@ logs/
 test_results/
 
 /src/output/web/data.json
+
+/test_results/

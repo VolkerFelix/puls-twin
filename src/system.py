@@ -165,7 +165,6 @@ class WearableTwinSystem:
                     self.workout_controller.apply_to_engine()
 
                 # Advance time
-                #for _ in range(10):
                 self.pulse_engine.advance_time_s(time_step)
                 sim_time += time_step
                 
