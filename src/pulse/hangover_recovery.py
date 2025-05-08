@@ -3,9 +3,8 @@ import time
 import logging
 from threading import Lock
 
-from pulse.cdm.patient_actions import SESubstanceCompound, SESubstanceInfusion, SEDrugAdministration, SEHemorrhage, SEFluidAdministration
-from pulse.cdm.properties import SEScalarMassPerVolume, SEScalarMass, SEScalarVolumePerTime, SEScalarVolume
-from pulse.cdm.scalars import MassPerVolumeUnit, MassUnit, VolumePerTimeUnit, VolumeUnit
+from pulse.cdm.patient_actions import SESubstanceCompoundInfusion, SESubstanceInfusion, SEHemorrhage
+from pulse.cdm.scalars import SEScalarVolumePerTime, SEScalarMass, SEScalarMassPerVolume, MassPerVolumeUnit, MassUnit, VolumePerTimeUnit, VolumeUnit
 
 logger = logging.getLogger("WearableTwinSystem")
 
@@ -130,10 +129,9 @@ class HangoverRecoveryController:
         Apply dehydration effects to the Pulse Engine
         
         Args:
-            pulse_engine: The initialized Pulse Engine instance
             severity: Value from 0.0 to 1.0 indicating dehydration severity
         """
-        if not self.pulse_engine or severity < 0.01:
+        if not self.engine or severity < 0.01:
             return False
             
         try:
@@ -162,7 +160,7 @@ class HangoverRecoveryController:
             hemorrhage.set_compartment("Vena Cava")
             
             # Execute the action
-            self.pulse_engine.process_action(hemorrhage)
+            self.engine.process_action(hemorrhage)
             
             # Log the action
             print(f"Applied dehydration via hemorrhage at {rate_ml_per_s:.2f} mL/s")
@@ -230,7 +228,7 @@ class HangoverRecoveryController:
         try:
             # Create a fluid administration action            
             # Fluid administration - oral or IV
-            fluid_admin = SEFluidAdministration()
+            fluid_admin = SESubstanceInfusion()
             
             # Set the fluid type - for hangover, typically water or saline
             fluid_admin.set_fluid_type("Saline")  # Can also be "Water" or "Blood"
@@ -282,7 +280,7 @@ class HangoverRecoveryController:
         try:
             # Create a compound infusion for sodium and potassium
             # Create sodium compound infusion
-            sodium_compound = SESubstanceCompound()
+            sodium_compound = SESubstanceCompoundInfusion()
             sodium_compound.set_name("Sodium")
             
             # Set sodium concentration

@@ -6,12 +6,13 @@ from threading import Thread
 
 from pulse.engine.PulseEngine import PulseEngine
 from pulse.cdm.engine import SEDataRequest, SEDataRequestManager
-from pulse.cdm.scalars import FrequencyUnit, PressureUnit, VolumePerTimeUnit
+from pulse.cdm.scalars import FrequencyUnit, PressureUnit, VolumePerTimeUnit, VolumeUnit
 from pulse.cdm.patient import SEPatient
 
 from output.console import ConsoleOutputChannel
 from output.base import OutputChannel
 from pulse.workout_controller import WorkoutController
+from pulse.hangover_recovery import HangoverRecoveryController
 
 STATE_FILE_PATH = "/Users/volker/Work/Puls/builds/install/bin/states/StandardMale@0s.json"
 
@@ -62,6 +63,9 @@ class WearableTwinSystem:
 
             # Initialize workout controller
             self.workout_controller = WorkoutController(self.pulse_engine)
+            
+            # Initialize hangover recovery controller
+            self.hangover_controller = HangoverRecoveryController(self.pulse_engine)
                 
             logger.info("Wearable Twin System initialized successfully")
             
@@ -79,6 +83,7 @@ class WearableTwinSystem:
             SEDataRequest.create_physiology_request("SystolicArterialPressure", unit=PressureUnit.mmHg),
             SEDataRequest.create_physiology_request("DiastolicArterialPressure", unit=PressureUnit.mmHg),
             SEDataRequest.create_physiology_request("CardiacOutput", unit=VolumePerTimeUnit.L_Per_min),
+            SEDataRequest.create_physiology_request("BloodVolume",  unit=VolumeUnit.mL),
         ]
         self.data_req_mgr = SEDataRequestManager(data_requests)
         self.data_req_mgr.set_results_filename("./test_results/WearableTwin.csv")
@@ -163,6 +168,10 @@ class WearableTwinSystem:
                 # Apply workout if active
                 if hasattr(self, 'workout_controller'):
                     self.workout_controller.apply_to_engine()
+                
+                # Apply hangover recovery if active
+                if hasattr(self, 'hangover_controller'):
+                    self.hangover_controller.apply_to_engine()
 
                 # Advance time
                 self.pulse_engine.advance_time_s(time_step)
@@ -193,6 +202,7 @@ class WearableTwinSystem:
                         'systolic_pressure': float(results[5]),
                         'diastolic_pressure': float(results[6]),
                         'cardiac_output': float(results[7]),
+                        'blood_volume': float(results[8]),
                         'hrv': hrv
                     }
                 }
@@ -207,6 +217,29 @@ class WearableTwinSystem:
                 elif state_record['all_states']['is_chill']:
                     state_record['primary_state'] = 'is_chill'
                     state_record['state_description'] = 'Twin is chill'
+                
+                # Get recovery status from hangover controller if available
+                if hasattr(self, 'hangover_controller') and self.hangover_controller:
+                    # Update recovery progress
+                    self.hangover_controller.update_recovery_progress()
+                    # Get the current recovery status
+                    state_record['recovery_status'] = self.hangover_controller.get_recovery_status()
+                else:
+                    # Include default recovery status for demonstration
+                    state_record['recovery_status'] = {
+                        'active': True,  # Set to True to show the recovery panel
+                        'severity': 0.7,
+                        'recovery_progress': min(1.0, sim_time / 180.0),  # Progress over 3 minutes
+                        'interventions': {
+                            'hydration': 0.8,
+                            'electrolytes': 0.6,
+                            'nutrients': 0.4,
+                            'rest': 0.7,
+                            'exercise': 0.3,
+                            'medication': 0.5
+                        },
+                        'elapsed_time': sim_time
+                    }
 
                 # Update all output channels
                 for i, channel in enumerate(self.output_channels):
@@ -275,4 +308,3 @@ class WearableTwinSystem:
             hrv_value = 65.0 + 10.0 * (1.0 - min(1.0, heart_rate/80.0))
 
         return hrv_value
-    

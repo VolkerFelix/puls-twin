@@ -47,27 +47,41 @@ class WebVisualizationOutputChannel(OutputChannel):
         
         # Initialize data structure with empty series
         self.data = {
-            "states": [],
-            "values": {
-                "heart_rate": [],
-                "systolic_pressure": [],
-                "diastolic_pressure": [],
-                "mean_pressure": [],
-                "oxygen_saturation": [],
-                "respiratory_rate": [],
-                "cardiac_output": []
-            },
-            "current_state": {
-                "primary_state": "neutral",
-                "description": "Twin is in a neutral state",
-                "all_states": {
-                    "is_dizzy": 0,
-                    "is_chill": 0,
-                    "is_beast_mode": 0
+                    "states": [],
+                    "values": {
+                        "heart_rate": [],
+                        "systolic_pressure": [],
+                        "diastolic_pressure": [],
+                        "mean_pressure": [],
+                        "oxygen_saturation": [],
+                        "respiratory_rate": [],
+                        "cardiac_output": []
+                    },
+                    "current_state": {
+                        "primary_state": "neutral",
+                        "description": "Twin is in a neutral state",
+                        "all_states": {
+                            "is_dizzy": 0,
+                            "is_chill": 0,
+                            "is_beast_mode": 0
+                        }
+                    },
+                    "recovery_status": {
+                        "active": False,
+                        "severity": 0.0,
+                        "recovery_progress": 0.0,
+                        "interventions": {
+                            "hydration": 0.0,
+                            "electrolytes": 0.0,
+                            "nutrients": 0.0,
+                            "rest": 0.0,
+                            "exercise": 0.0,
+                            "medication": 0.0
+                        },
+                        "elapsed_time": 0
+                    },
+                    "latest_record": None
                 }
-            },
-            "latest_record": None
-        }
         
         # Write initial data file
         try:
@@ -236,6 +250,9 @@ class WebVisualizationOutputChannel(OutputChannel):
                         self.data['values']['cardiac_output'] = self.data['values']['cardiac_output'][-100:]
                 except (ValueError, TypeError) as e:
                     logger.error(f"Error processing cardiac_output value: {e}")
+
+            if 'recovery_status' in state_record:
+                self.data['recovery_status'] = state_record['recovery_status']
             
             # Update current state
             primary_state = state_record.get('primary_state', 'neutral')

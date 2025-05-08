@@ -410,6 +410,12 @@ function updateMetrics(data) {
             document.querySelector('#hrv .metric-value').textContent = 
                 `${Math.round(values.hrv)} ms`;
         }
+
+        // Blood Volume
+        if (values.blood_volume !== undefined) {
+            document.querySelector('#blood-volume .metric-value').textContent = 
+                `${Math.round(values.blood_volume)} mL`;
+        }
     }
 }
 
